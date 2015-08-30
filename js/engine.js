@@ -25,8 +25,8 @@ var Engine = (function(global) {
         ctx = canvas.getContext('2d'),
         lastTime;
 
-    canvas.width = 505;
-    canvas.height = 606;
+    canvas.width = 808;
+    canvas.height = 909;
     doc.body.appendChild(canvas);
 
     /* This function serves as the kickoff point for the game loop itself
@@ -64,7 +64,8 @@ var Engine = (function(global) {
      * game loop.
      */
     function init() {
-        reset();
+        gameReset();
+		initLoad  ();
         lastTime = Date.now();
         main();
     }
@@ -91,10 +92,15 @@ var Engine = (function(global) {
      * render methods.
      */
     function updateEntities(dt) {
-        allEnemies.forEach(function(enemy) {
-            enemy.update(dt);
-        });
-        player.update();
+        if (play === true) {
+            allEnemies.forEach(function(enemy) {
+                enemy.update(dt);
+            });
+            npc.forEach(function(npc) {
+                npc.update(dt);
+            });
+    		player.update();
+        }
     }
 
     /* This function initially draws the "game level", it will then call
@@ -107,37 +113,100 @@ var Engine = (function(global) {
         /* This array holds the relative URL to the image used
          * for that particular row of the game level.
          */
-        var rowImages = [
-                'images/water-block.png',   // Top row is water
-                'images/stone-block.png',   // Row 1 of 3 of stone
-                'images/stone-block.png',   // Row 2 of 3 of stone
-                'images/stone-block.png',   // Row 3 of 3 of stone
-                'images/grass-block.png',   // Row 1 of 2 of grass
-                'images/grass-block.png'    // Row 2 of 2 of grass
-            ],
-            numRows = 6,
-            numCols = 5,
-            row, col;
-
-        /* Loop through the number of rows and columns we've defined above
-         * and, using the rowImages array, draw the correct image for that
-         * portion of the "grid"
-         */
-        for (row = 0; row < numRows; row++) {
-            for (col = 0; col < numCols; col++) {
-                /* The drawImage function of the canvas' context element
-                 * requires 3 parameters: the image to draw, the x coordinate
-                 * to start drawing and the y coordinate to start drawing.
-                 * We're using our Resources helpers to refer to our images
-                 * so that we get the benefits of caching these images, since
-                 * we're using them over and over.
-                 */
-                ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
+		if (play === true) {
+    		ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (level === 1) {
+                var rowImages = [
+                        'images/water-block.png',   // Top row is water
+                        'images/stone-block.png',   // Row 1 of 4 of stone
+                        'images/stone-block.png',   // Row 2 of 4 of stone
+                        'images/stone-block.png',   // Row 3 of 4 of stone
+                        'images/grass-block.png'    // Row 1 of 1 of grass
+                    ],
+                    numRows = 5,
+                    numCols = 8,
+                    row, col;
+                    if (player.row === 0) {
+                        player.render();
+                    }
+                    npc.forEach(function(npc) {
+                        if (npc.distress) {
+                            npc.render();
+                        }
+                    });
             }
+            if (level === 2) {
+                var rowImages = [
+                        'images/grass-block.png',   // Top row is grass
+                        'images/water-block.png',   // Row 1 of 4 of water
+                        'images/water-block.png',   // Row 2 of 4 of water
+                        'images/water-block.png',   // Row 3 of 4 of water
+                        'images/water-block.png',   // Row 4 of 4 of water
+                        'images/stone-block.png',   
+                    ],
+                    numRows = 6,
+                    numCols = 8,
+                    row, col;
+                    // Render all enemies not on top row of water
+                    allEnemies.forEach(function(enemy) {
+                            if (enemy.row !== 1) {
+                                enemy.render();
+                            }
+                        });
+                    // Render player when in water; player is rendered before water, so appears "under" water
+                    if (player.row > 0 && player.row < 5) {
+                        player.render();
+                    }
+            }
+            /* Loop through the number of rows and columns we've defined above
+             * and, using the rowImages array, draw the correct image for that
+             * portion of the "grid"
+             */
+            for (row = 0; row < numRows; row++) {
+                /* We want to render enemies underwater only after water blocks.
+                 * If we do not run this check, land blocks render before and
+                 * as they are not transparent, partially obscures enemies on
+                 * top row of water
+                 */
+                allEnemies.forEach(function(enemy) {
+                            if (row === 1 && enemy.row === 1) {
+                                enemy.render();
+                            }
+                        });
+                for (col = 0; col < numCols; col++) {
+                    /* The drawImage function of the canvas' context element
+                     * requires 3 parameters: the image to draw, the x coordinate
+                     * to start drawing and the y coordinate to start drawing.
+                     * We're using our Resources helpers to refer to our images
+                     * so that we get the benefits of caching these images, since
+                     * we're using them over and over.
+                     */
+                    if (rowImages[row] === 'images/water-block.png') {
+                        /* If we are drawing water, we will shift the transparency slightly
+                         * In addition, because the block "edge" destroys the transparency
+                         * effect, we will draw only the "surface" portion of the block
+                         */
+                        ctx.save();
+                        ctx.globalAlpha = 0.8;
+                        ctx.drawImage(Resources.get(rowImages[row]), 0, 50,
+                            Resources.get(rowImages[row]).width,
+                            Resources.get(rowImages[row]).height - 86,
+                            col * 101, row * 83 + 50,
+                            Resources.get(rowImages[row]).width,
+                            Resources.get(rowImages[row]).height - 86);
+                        ctx.restore();
+                    }
+                    else {
+                        ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
+                    }
+                }
+            }
+
+            renderEntities();
+		}
+        else {
+            loadRender();
         }
-
-
-        renderEntities();
     }
 
     /* This function is called by the render function and is called on each game
@@ -148,19 +217,42 @@ var Engine = (function(global) {
         /* Loop through all of the objects within the allEnemies array and call
          * the render function you have defined.
          */
-        allEnemies.forEach(function(enemy) {
-            enemy.render();
+        if (level !== 2) {
+            allEnemies.forEach(function(enemy) {
+                enemy.render();
+            });
+        }
+        // Loop through NPCs, and render a method depending on level and state
+        npc.forEach(function(npc) {
+            switch(level) {
+                case 1:
+                    if (!npc.distress) {
+                        npc.render();
+                    }
+                    if (npc.distress) {
+                        npc.halfRender();
+                    }
+                    break;
+                case 2:
+                    npc.render();
+                    break;
+            }
         });
-
-        player.render();
+        if (win === true || (level === 1 && player.row !== 0) || (level === 2 && (player.row === 0 || player.row === 5))) {
+		    player.render();
+        }
+        player.halfRender();
     }
 
-    /* This function does nothing but it could have been a good place to
-     * handle game reset states - maybe a new game menu or a game over screen
-     * those sorts of things. It's only called once by the init() method.
-     */
-    function reset() {
-        // noop
+	function loadRender() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (col = 0; col <5; col++) {
+				ctx.drawImage(Resources.get("images/stone-block.png"), col * 101 + 101, 249);
+			}
+		selector.render();
+		for (var i = 0; i < chars.length; i++) {
+			ctx.drawImage(Resources.get(chars[i]), i * 101 + 101, 215);
+		}
     }
 
     /* Go ahead and load all of the images we know we're going to need to
@@ -172,7 +264,16 @@ var Engine = (function(global) {
         'images/water-block.png',
         'images/grass-block.png',
         'images/enemy-bug.png',
-        'images/char-boy.png'
+        'images/char-boy.png',
+		'images/Star.png',
+		'images/Selector.png',
+		'images/char-cat-girl.png',
+		'images/char-horn-girl.png',
+		'images/char-pink-girl.png',
+		'images/char-princess-girl.png',
+        'images/Gem-Green.png',
+        'images/Gem-Blue.png',
+        'images/Gem-Orange.png'
     ]);
     Resources.onReady(init);
 
