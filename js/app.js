@@ -121,7 +121,7 @@ Player.prototype.collide = function(prev) {
                 this.col = prev.col;
                 this.dir='';
                 npc[np].collide();
-			}
+            }
         }
     }
 };
@@ -157,36 +157,36 @@ Player.prototype.update = function() {
     // Player's current position, recorded for later use in case of collision
     var prev = {'x': this.x, 'y': this.y, 'row': this.row, 'col': this.col};
     //This switch changes player position values based on keypress, if in canvas
-	switch(this.dir) {
-		case 'left':
-			if (this.x > 100) {
-				this.x = this.x - 101;
-				this.col--;
-			}
-			break;
-		case 'right':
-			if (this.x < ctx.canvas.width - 200) {
-				this.x = this.x + 101;
-				this.col++;
-			}
-			break;
-		case 'up':
-			if (this.y > 10) {
-				this.y = this.y - 83;
-				this.row--;
-			}
-			break;
-		case 'down':
-			if (this.y < 300) {
-				this.y = this.y + 83;
-				this.row++;
+    switch(this.dir) {
+        case 'left':
+            if (this.x > 100) {
+                this.x = this.x - 101;
+                this.col--;
             }
-			break;
-		default:
-			this.x = this.x;
-			this.y = this.y;
-			break;
-	}
+            break;
+        case 'right':
+            if (this.x < ctx.canvas.width - 200) {
+                this.x = this.x + 101;
+                this.col++;
+            }
+            break;
+        case 'up':
+            if (this.y > 10) {
+                this.y = this.y - 83;
+                this.row--;
+            }
+            break;
+        case 'down':
+            if (this.y < 300) {
+                this.y = this.y + 83;
+                this.row++;
+            }
+            break;
+        default:
+            this.x = this.x;
+            this.y = this.y;
+            break;
+        }
     this.collide(prev);
     this.dir = '';
 };
@@ -323,33 +323,33 @@ Nonplayer.prototype.update = function() {
     if (this.rescued) {
         this.row = player.row;
         this.col = player.col;
-		var count = 0;
+        var count = 0;
         /* If the player has reached the next-to-last row, and moves down,
          * we check if there are any other NPCs occupying that spot
          */
         if (player.row === 4 && player.dir === 'down') {
-			for (var i = 0; i < npc.length; i++) {
-				if (this.col === npc[i].col) {
-					count++;
-				}
-			}
+            for (var i = 0; i < npc.length; i++) {
+                if (this.col === npc[i].col) {
+                    count++;
+                }
+            }
             //If no NPCs occupy that spot, the NPC is placed there
-			if (count === 1) {
-				this.x = player.x;
-				this.y = 390;
-				this.row = 5;
-				this.col = player.col;
-				this.rescued = false;
-				player.dir = '';
-				count = 0;
+            if (count === 1) {
+                this.x = player.x;
+                this.y = 390;
+                this.row = 5;
+                this.col = player.col;
+                this.rescued = false;
+                player.dir = '';
+                count = 0;
                
-				if (npc.length === gem.length) {
-					win = true;
-				}
-				npcGenerate(1); // Generates a new
-			}
-		}
-	}
+                if (npc.length === gem.length) {
+                    win = true;
+                }
+                npcGenerate(1); // Generates a new
+            }
+        }
+    }
 };
 
 // NPC render function
@@ -391,10 +391,10 @@ Nonplayer.prototype.halfRender = function() {
 // Nonplayer collide
 Nonplayer.prototype.collide = function() {
     if (this.distress === true) {
-		this.rescued = true;
+        this.rescued = true;
         this.distress = false;
-	}
-	else if (this.rescued) {
+    }
+    else if (this.rescued) {
         this.row = 0;
         this.col = randomize(0,6);
         this.x = this.col * 101;
@@ -426,9 +426,9 @@ function gameReset() {
     }
     player = new Player;
     player.sprite = chars[selectedChar];
-	gems = gem.slice(0);
-	//gems.splice(gens.indexOf(player.sprite),1);
-	npcGenerate(1);
+    gems = gem.slice(0);
+    //gems.splice(gens.indexOf(player.sprite),1);
+    npcGenerate(1);
     win = false;
 }
 
@@ -436,18 +436,18 @@ function gameReset() {
  * NPC generation methods, or unique NPCs, currently unutilized
  */
 function npcGenerate(lvl) {
-	switch(lvl) {
-		case 1:
+    switch(lvl) {
+        case 1:
             /* We create an array containing all of the char sprites,
              * and pop() them off as we use them until we reach end of array
              */
-			if (npc.length < gem.length) {
-				newGem = gems.pop();
-				npc.push(new Nonplayer(randomize(0,6),0,gem.indexOf(newGem)));
-				npc[npc.length-1].distress = true;
-			}
-			break;
-	}
+            if (npc.length < gem.length) {
+                newGem = gems.pop();
+                npc.push(new Nonplayer(randomize(0,6),0,gem.indexOf(newGem)));
+                npc[npc.length-1].distress = true;
+            }
+            break;
+    }
 }
 
 
