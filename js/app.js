@@ -1,3 +1,9 @@
+/*app.js
+*Developed by: Jeisse
+*Date:28/08/2015
+*The code below should handle the Enemy, Player, Selector and Nonplayer classes
+*/
+
 // Global Variables
 var NPC_Y = -35; //Coordinates for NPC y-axis
 var startPosition = { //Player starting position
